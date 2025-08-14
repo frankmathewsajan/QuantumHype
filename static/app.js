@@ -87,6 +87,52 @@ function addBobMessage(text) {
     document.getElementById('bob-messages').prepend(m);
 }
 
+// Render detailed BB84 steps into HTML
+function renderSteps(steps) {
+    if (!steps || !steps.length) return '';
+    let html = '';
+    for (const s of steps) {
+        if (s.step === 'text_to_bits') {
+            html += `<div><b>Text → Bits</b>: "${s.text}" → <code>${s.bit_string}</code></div>`;
+        } else if (s.step === 'alice_bases') {
+            html += `<div><b>Alice bases</b>: [${s.bases.join(', ')}]</div>`;
+        } else if (s.step === 'alice_prepare') {
+            html += `<div><b>Alice prepared states</b>:<ul class="list-disc pl-6">`;
+            s.prepared.forEach((p, i) => {
+                html += `<li>#${i}: bit=${p.bit}, basis=${p.basis}, state=${p.state}</li>`;
+            });
+            html += `</ul></div>`;
+        } else if (s.step === 'eve_actions') {
+            html += `<div><b>Eve actions</b>:<ul class="list-disc pl-6">`;
+            s.actions.forEach(a => {
+                html += `<li>#${a.index}: eve_basis=${a.eve_basis}, eve_result=${a.eve_result}, resent=${a.resent_state}</li>`;
+            });
+            html += `</ul></div>`;
+        } else if (s.step === 'bob_bases') {
+            html += `<div><b>Bob bases</b>: [${s.bases.join(', ')}]</div>`;
+        } else if (s.step === 'bob_results') {
+            html += `<div><b>Bob measurement results</b>: [${s.results.join(', ')}]</div>`;
+        } else if (s.step === 'sifting') {
+            html += `<div><b>Sifting</b>: indices kept [${s.sifted_indices.join(', ')}], Alice sifted=[${s.alice_sifted.join(', ')}], Bob sifted=[${s.bob_sifted.join(', ')}]</div>`;
+        } else if (s.step === 'qber') {
+            html += `<div><b>QBER</b>: errors=${s.errors}, qber=${(s.qber*100).toFixed(2)}% — eve_detected=${s.eve_detected}</div>`;
+        } else if (s.step === 'reconstruction') {
+            if (s.reconstruction && s.reconstruction.length) {
+                html += `<div><b>Reconstruction</b>:<ul class="list-disc pl-6">`;
+                s.reconstruction.forEach(r => {
+                    html += `<li>byte#${r.byte_index}: bits=[${r.bits.join('')}], value=${r.value}, char='${r.char}'</li>`;
+                });
+                html += `</ul></div>`;
+            } else {
+                html += `<div><b>Reconstruction</b>: Not enough bits to reconstruct message</div>`;
+            }
+        } else {
+            html += `<div><b>${s.step}</b>: ${JSON.stringify(s)}</div>`;
+        }
+    }
+    return html;
+}
+
 async function sendMessage(sender, message, eavesdrop, encrypted=false) {
     // call backend to simulate BB84 for this message
     const resp = await fetch('/api/message', {
@@ -111,7 +157,12 @@ async function sendMessage(sender, message, eavesdrop, encrypted=false) {
         } else {
             addBobMessage('Alice: (message corrupted)');
         }
-        addLog('<b>Alice → Bob</b>' + (encrypted ? ' [encrypted]' : '') + ': ' + message + '<br>QBER: ' + (data.qber*100).toFixed(2) + '% — Eve: ' + (data.eve_detected ? 'Yes' : 'No'));
+        const logHtml = '<b>Alice → Bob</b>' + (encrypted ? ' [encrypted]' : '') + ': ' + message + '<br>QBER: ' + (data.qber*100).toFixed(2) + '% — Eve: ' + (data.eve_detected ? 'Yes' : 'No');
+        if (data.steps) {
+            addLog(logHtml + '<details class="mt-2"><summary>Show detailed steps</summary><div class="mt-2">' + renderSteps(data.steps) + '</div></details>');
+        } else {
+            addLog(logHtml);
+        }
     } else {
         addBobMessage('You' + (encrypted ? ' (encrypted)' : '') + ': ' + message);
         if (data.delivered_message) {
@@ -119,7 +170,12 @@ async function sendMessage(sender, message, eavesdrop, encrypted=false) {
         } else {
             addAliceMessage('Bob: (message corrupted)');
         }
-        addLog('<b>Bob → Alice</b>' + (encrypted ? ' [encrypted]' : '') + ': ' + message + '<br>QBER: ' + (data.qber*100).toFixed(2) + '% — Eve: ' + (data.eve_detected ? 'Yes' : 'No'));
+        const logHtml = '<b>Bob → Alice</b>' + (encrypted ? ' [encrypted]' : '') + ': ' + message + '<br>QBER: ' + (data.qber*100).toFixed(2) + '% — Eve: ' + (data.eve_detected ? 'Yes' : 'No');
+        if (data.steps) {
+            addLog(logHtml + '<details class="mt-2"><summary>Show detailed steps</summary><div class="mt-2">' + renderSteps(data.steps) + '</div></details>');
+        } else {
+            addLog(logHtml);
+        }
     }
 }
 
