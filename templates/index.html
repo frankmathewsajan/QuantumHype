@@ -3,14 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuantumHype Frontend</title>
+    <title>QuantumHype — Message App Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/flowbite@1.6.5/dist/flowbite.min.js"></script>
 </head>
-<body>
-    <h1>Welcome to QuantumHype!</h1>
-    <p>This is your Flask-powered frontend.</p>
-    <button id="api-btn">Call Backend API</button>
-    <div id="api-response"></div>
+<body class="bg-gray-50 text-gray-800">
+    <div class="container mx-auto p-6">
+        <header class="flex items-center justify-between mb-6">
+            <h1 class="text-2xl font-semibold">Quantum Message App Simulator (BB84)</h1>
+            <div class="flex items-center space-x-4">
+                <label class="flex items-center space-x-2">
+                    <input id="eavesdrop-toggle" type="checkbox" class="h-4 w-4 text-indigo-600 rounded">
+                    <span class="text-sm">Eavesdropper (Eve)</span>
+                </label>
+                <button id="clear-btn" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm">Clear</button>
+            </div>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Alice panel -->
+            <section class="bg-white shadow rounded p-4 flex flex-col">
+                <h2 class="font-medium mb-2">Alice</h2>
+                <div class="flex-1 flex flex-col">
+                    <input id="alice-message" type="text" maxlength="128" placeholder="Type a message as Alice..." class="border rounded px-3 py-2 mb-3 focus:outline-none focus:ring-2 focus:ring-indigo-200">
+                    <div class="flex items-center space-x-2 mb-3">
+                        <button id="alice-send" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Send to Bob</button>
+                        <button id="alice-send-anon" class="bg-indigo-100 text-indigo-700 px-3 py-2 rounded hover:bg-indigo-200 text-sm">Send Encrypted</button>
+                    </div>
+                    <div class="flex-1 overflow-auto border rounded p-2 bg-gray-50" style="min-height:160px;" id="alice-messages"></div>
+                </div>
+            </section>
+
+            <!-- Bob panel -->
+            <section class="bg-white shadow rounded p-4 flex flex-col">
+                <h2 class="font-medium mb-2">Bob</h2>
+                <div class="flex-1 flex flex-col">
+                    <input id="bob-message" type="text" maxlength="128" placeholder="Type a message as Bob..." class="border rounded px-3 py-2 mb-3 focus:outline-none focus:ring-2 focus:ring-indigo-200">
+                    <div class="flex items-center space-x-2 mb-3">
+                        <button id="bob-send" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Send to Alice</button>
+                        <button id="bob-send-anon" class="bg-green-100 text-green-700 px-3 py-2 rounded hover:bg-green-200 text-sm">Send Encrypted</button>
+                    </div>
+                    <div class="flex-1 overflow-auto border rounded p-2 bg-gray-50" style="min-height:160px;" id="bob-messages"></div>
+                </div>
+            </section>
+        </main>
+
+        <section class="mt-6 bg-white shadow rounded p-4">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-medium">Exchange History & Visualization</h3>
+                <div class="text-sm text-gray-500">QBER over messages, and delivery status</div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div class="col-span-2">
+                    <canvas id="qberChart" height="120"></canvas>
+                </div>
+                <div>
+                    <div class="bg-gray-50 p-3 rounded h-full">
+                        <h4 class="font-medium mb-2">Stats</h4>
+                        <div id="stat-eve" class="text-sm mb-2">Eve status: <span class="font-semibold">None</span></div>
+                        <div id="stat-last" class="text-sm">Last QBER: <span class="font-semibold">-</span></div>
+                        <div id="stat-count" class="text-sm">Messages exchanged: <span class="font-semibold">0</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <h4 class="font-medium mb-2">Message Log</h4>
+                <div id="message-log" class="space-y-2 max-h-64 overflow-auto"></div>
+            </div>
+        </section>
+
+    </div>
+
     <script src="/static/app.js"></script>
 </body>
 </html>

@@ -20,3 +20,12 @@ button {
     color: #27ae60;
     font-weight: bold;
 }
+
+/* Custom small tweaks */
+#alice-messages div, #bob-messages div {
+  padding: 6px;
+  border-radius: 6px;
+}
+#alice-messages div.alice { background: #eef2ff; text-align: left; }
+#bob-messages div.bob { background: #ecfdf5; text-align: left; }
+.message-log-item { padding: 8px; border-radius: 6px; background: #fff; border: 1px solid #e5e7eb; }
